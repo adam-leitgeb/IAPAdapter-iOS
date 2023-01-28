@@ -10,7 +10,7 @@ import Foundation
 
 extension Set {
 
-    nfunc setMap<U>(transform: (Element) -> U) -> Set<U> {
+    func setMap<U>(transform: (Element) -> U) -> Set<U> {
         Set<U>(self.lazy.map(transform))
     }
 
