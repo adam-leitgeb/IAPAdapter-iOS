@@ -9,25 +9,6 @@ This Swift library provides a set of tools for managing In-App Purchases (IAP) i
 - iOS 13.0 or later
 - Swift 5.0 or later
 
-## Components
-
-1. **IAPAdapter.swift**
-   - Defines `IAPAdapter` protocol with essential methods for managing in-app purchases, like requesting products, making purchases, and restoring transactions.
-
-2. **IAPAdapterImp.swift**
-   - Implements the `IAPAdapter` protocol.
-   - Manages the interaction with StoreKit, handling product requests, purchases, and restoration processes.
-
-3. **IAPAdapter+Notifications.swift**
-   - Extends the `IAPAdapter` with notification support.
-   - Includes custom notification names for purchase events.
-
-4. **Set+Map.swift**
-   - Provides extensions to the Swift `Set` collection, introducing `setMap` and `setCompactMap` methods for easier data manipulation.
-
-5. **ProductIdentifier.swift**
-   - Simple typealias for `ProductIdentifier` to `String` for better code readability and maintenance.
-
 ## Usage
 
 Here's an example of how to use the library, with comments explaining each step:

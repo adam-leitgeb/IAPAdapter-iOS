@@ -1,18 +1,7 @@
-//
-//  IAPAdapter.swift
-//  DrivingSchool
-//
-//  Created by Adam Leitgeb on 28/02/2020.
-//  Copyright © 2020 Adam Leitgeb. All rights reserved.
-//
-
 import Foundation
 import StoreKit
 
-public typealias RequestProductsCompletionHandler = (Result<[SKProduct], Error>) -> Void
-public typealias PurchaseCompletionHandler = (Result<Void, Error>) -> Void
-
-public final class IAPAdapterImp: NSObject, IAPAdapter {
+public final class IAPAdapterImp: NSObject {
 
     // MARK: - Properties
 
@@ -20,10 +9,10 @@ public final class IAPAdapterImp: NSObject, IAPAdapter {
     private let productIDs: Set<ProductIdentifier>
     private var purchasedProductIDs: Set<ProductIdentifier> = []
     private var productsRequest: SKProductsRequest?
-    private var requestProductsCompletionHandler: RequestProductsCompletionHandler?
-    private var purchaseCompletionHandler: PurchaseCompletionHandler?
+    private var requestProductsCompletionHandler: (Result<[SKProduct], Error>) -> Void?
+    private var purchaseCompletionHandler: (Result<Void, Error>) -> Void?
 
-    // MARK: - Initialization
+    // MARK: - Constructors
 
     public init(productIDs: Set<ProductIdentifier>) {
         self.productIDs = productIDs
@@ -34,10 +23,13 @@ public final class IAPAdapterImp: NSObject, IAPAdapter {
         super.init()
         SKPaymentQueue.default().add(self)
     }
+}
 
-    // MARK: - Actions
+// MARK: - IAPAdapter
 
-    public func requestProducts(completionHandler: @escaping RequestProductsCompletionHandler) {
+extension IAPAdapterImp: IAPAdapter {
+
+    public func requestProducts(completionHandler: @escaping (Result<[SKProduct], Error>) -> Void) {
         productsRequest?.cancel()
         requestProductsCompletionHandler = completionHandler
 
@@ -47,14 +39,14 @@ public final class IAPAdapterImp: NSObject, IAPAdapter {
         productsRequest?.start()
     }
 
-    public func buyProduct(_ product: SKProduct, then completion: @escaping PurchaseCompletionHandler) {
-        print("Buying \(product.productIdentifier)...")
+    public func buyProduct(_ product: SKProduct, then completion: @escaping (Result<Void, Error>) -> Void) {
+        print("Buying: \(product.productIdentifier)...")
         purchaseCompletionHandler = completion
         let payment = SKPayment(product: product)
         SKPaymentQueue.default().add(payment)
     }
 
-    public func restorePurchases(then completion: @escaping PurchaseCompletionHandler) {
+    public func restorePurchases(then completion: @escaping (Result<Void, Error>) -> Void) {
         purchaseCompletionHandler = completion
         SKPaymentQueue.default().restoreCompletedTransactions()
     }
@@ -107,9 +99,7 @@ extension IAPAdapterImp: SKPaymentTransactionObserver {
                 fail(transaction: transaction)
             case .restored:
                 restore(transaction: transaction)
-            case .deferred:
-                break
-            case .purchasing:
+            case .deferred, .purchasing:
                 break
             @unknown default:
                 break
@@ -120,7 +110,7 @@ extension IAPAdapterImp: SKPaymentTransactionObserver {
     // Helpers
 
     private func complete(transaction: SKPaymentTransaction) {
-        print("complete...")
+        print("Transaction complete")
         if let error = transaction.error {
             purchaseCompletionHandler?(.failure(error))
         } else {
@@ -133,7 +123,7 @@ extension IAPAdapterImp: SKPaymentTransactionObserver {
         guard let productIdentifier = transaction.original?.payment.productIdentifier else {
             return
         }
-        print("restore... \(productIdentifier)")
+        print("Restore: \(productIdentifier)")
         purchaseCompletionHandler?(.success(()))
         SKPaymentQueue.default().finishTransaction(transaction)
     }
